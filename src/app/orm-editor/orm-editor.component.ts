@@ -3,11 +3,13 @@ import {DataSyncService, DiagramComponent, GojsAngularModule, PaletteComponent} 
 import * as go from 'gojs';
 import produce from "immer";
 import {Diagram} from "gojs";
+import {CommonModule} from "@angular/common";
 
 @Component({
   selector: 'app-orm-editor',
   standalone: true,
   imports: [
+    CommonModule,
     GojsAngularModule
   ],
   templateUrl: './orm-editor.component.html',
