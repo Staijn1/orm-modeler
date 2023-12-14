@@ -50,7 +50,6 @@ export class OrmEditorComponent implements AfterViewInit{
   };
 
   public diagramDivClassName: string = 'myDiagramDiv';
-  public paletteDivClassName = 'myPaletteDiv';
 
   /**
    * Initialize the diagram and templates
@@ -167,8 +166,6 @@ export class OrmEditorComponent implements AfterViewInit{
 
   constructor(private cdr: ChangeDetectorRef) { }
 
-  // Overview Component testing
-  public oDivClassName = 'myOverviewDiv';
   public initOverview(): go.Overview {
     const $ = go.GraphObject.make;
     const overview = $(go.Overview);
