@@ -174,8 +174,8 @@ export class OrmEditorComponent implements AfterViewInit{
     const overview = $(go.Overview);
     return overview;
   }
-  // @ts-ignore
-  public observedDiagram: Diagram = null;
+
+  public observedDiagram!: Diagram;
 
   // currently selected node; for inspector
   public selectedNodeData: go.ObjectData | null = null;
