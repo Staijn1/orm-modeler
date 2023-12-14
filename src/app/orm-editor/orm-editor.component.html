@@ -28,6 +28,8 @@
                   [nodeDataArray]='state.paletteNodeData'
                   divClassName="gojs-palette">
     </gojs-palette>
+    <gojs-overview #myOverview [initOverview]='initOverview' divClassName="gojs-overview"
+                   [observedDiagram]='observedDiagram'></gojs-overview>
   </div>
   <div>
     Diagram
@@ -39,9 +41,4 @@
   </div>
 </div>
 
-<div>
-  Overview
-  <gojs-overview #myOverview [initOverview]='initOverview' divClassName="gojs-overview"
-                 [observedDiagram]='observedDiagram'></gojs-overview>
-</div>
 

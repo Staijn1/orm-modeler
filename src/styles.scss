@@ -4,16 +4,17 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: 'Roboto', sans-serif;
-}
+$palette-width: 250px;
+$overview-height: 150px;
+$diagram-width: calc(100vw - #{$palette-width});
+
 .gojs-container {
-  height: 50em;
+  @apply h-[50em];
 }
 
 .gojs-palette {
-  width: 250px;
-  height: 100%;
+  width: $palette-width;
+  height: calc(100% - #{$overview-height});
   background: whitesmoke;
 }
 
@@ -25,24 +26,14 @@ body {
 }
 
 .gojs-overview {
-  width: 200px;
-  height: 150px;
+  @apply border-t border-gray-400;
+  width: $palette-width;
+  height: $overview-height;
   background: whitesmoke;
-  border: 1px solid black;
-}
-
-.left {
-  float: left;
-  padding: 5px;
-  margin: 5px;
 }
 
 .box {
   border: solid 1px black;
   background: whitesmoke;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
-
-.clear {
-  clear: both;
 }
