@@ -1,9 +1,9 @@
-import {ChangeDetectorRef, Component, ViewChild} from '@angular/core';
-import {DataSyncService, DiagramComponent, GojsAngularModule, PaletteComponent} from "gojs-angular";
+import {AfterViewInit, ChangeDetectorRef, Component, ViewChild} from '@angular/core';
+import {DataSyncService, DiagramComponent, GojsAngularModule, PaletteComponent} from 'gojs-angular';
 import * as go from 'gojs';
-import produce from "immer";
-import {Diagram} from "gojs";
-import {CommonModule} from "@angular/common";
+import {Diagram} from 'gojs';
+import produce from 'immer';
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'app-orm-editor',
@@ -15,7 +15,7 @@ import {CommonModule} from "@angular/common";
   templateUrl: './orm-editor.component.html',
   styleUrl: './orm-editor.component.scss'
 })
-export class OrmEditorComponent {
+export class OrmEditorComponent implements AfterViewInit{
 
   @ViewChild('myDiagram', { static: true }) public myDiagramComponent!: DiagramComponent;
   @ViewChild('myPalette', { static: true }) public myPaletteComponent!: PaletteComponent;
@@ -40,7 +40,6 @@ export class OrmEditorComponent {
     ],
     diagramModelData: { prop: 'value' },
     skipsDiagramUpdate: false,
-    selectedNodeData: null, // used by InspectorComponent
 
     // Palette state props
     paletteNodeData: [
@@ -53,7 +52,9 @@ export class OrmEditorComponent {
   public diagramDivClassName: string = 'myDiagramDiv';
   public paletteDivClassName = 'myPaletteDiv';
 
-  // initialize diagram / templates
+  /**
+   * Initialize the diagram and templates
+   */
   public initDiagram(): go.Diagram {
 
     const $ = go.GraphObject.make;
@@ -72,16 +73,14 @@ export class OrmEditorComponent {
 
     dia.commandHandler.archetypeGroupData = { key: 'Group', isGroup: true };
 
-    const makePort = function(id: string, spot: go.Spot) {
-      return $(go.Shape, 'Circle',
-        {
-          opacity: .5,
-          fill: 'gray', strokeWidth: 0, desiredSize: new go.Size(8, 8),
-          portId: id, alignment: spot,
-          fromLinkable: true, toLinkable: true
-        }
-      );
-    }
+    const makePort = (id: string, spot: go.Spot) => $(go.Shape, 'Circle',
+      {
+        opacity: .5,
+        fill: 'gray', strokeWidth: 0, desiredSize: new go.Size(8, 8),
+        portId: id, alignment: spot,
+        fromLinkable: true, toLinkable: true
+      }
+    )
 
     // define the Node template
     dia.nodeTemplate =
@@ -118,30 +117,32 @@ export class OrmEditorComponent {
     return dia;
   }
 
-  // When the diagram model changes, update app data to reflect those changes. Be sure to use immer's "produce" function to preserve immutability
+  /**
+   * When the diagram model changes, update app data to reflect those changes.
+   * Be sure to use immer's "produce" function to preserve immutability
+   * @param changes the GoJS model changes
+   */
   public diagramModelChange = (changes: go.IncrementalData) => {
     if (!changes) return;
-    const appComp = this;
     this.state = produce(this.state , (draft: any) => {
       // set skipsDiagramUpdate: true since GoJS already has this update
       // this way, we don't log an unneeded transaction in the Diagram's undoManager history
       draft.skipsDiagramUpdate = true;
-      draft.diagramNodeData = DataSyncService.syncNodeData(changes, draft.diagramNodeData, appComp.observedDiagram?.model);
-      draft.diagramLinkData = DataSyncService.syncLinkData(changes, draft.diagramLinkData, (appComp.observedDiagram?.model as any));
+      draft.diagramNodeData = DataSyncService.syncNodeData(changes, draft.diagramNodeData, this.observedDiagram?.model);
+      draft.diagramLinkData = DataSyncService.syncLinkData(changes, draft.diagramLinkData, (this.observedDiagram?.model as any));
       draft.diagramModelData = DataSyncService.syncModelData(changes, draft.diagramModelData);
       // If one of the modified nodes was the selected node used by the inspector, update the inspector selectedNodeData object
       const modifiedNodeDatas = changes.modifiedNodeData;
       if (modifiedNodeDatas && draft.selectedNodeData) {
-        for (let i = 0; i < modifiedNodeDatas.length; i++) {
-          const mn = modifiedNodeDatas[i];
-          const nodeKeyProperty = appComp.myDiagramComponent.diagram.model.nodeKeyProperty as string;
-          if (mn[nodeKeyProperty] === draft.selectedNodeData[nodeKeyProperty]) {
-            draft.selectedNodeData = mn;
+        for (const modifiedNodeData of modifiedNodeDatas) {
+          const nodeKeyProperty = this.myDiagramComponent.diagram.model.nodeKeyProperty as string;
+          if (modifiedNodeData[nodeKeyProperty] === draft.selectedNodeData[nodeKeyProperty]) {
+            draft.selectedNodeData = modifiedNodeData;
           }
         }
       }
     });
-  };
+  }
 
   public initPalette(): go.Palette {
     const $ = go.GraphObject.make;
@@ -184,46 +185,20 @@ export class OrmEditorComponent {
     this.observedDiagram = this.myDiagramComponent.diagram;
     this.cdr.detectChanges(); // IMPORTANT: without this, Angular will throw ExpressionChangedAfterItHasBeenCheckedError (dev mode only)
 
-    const appComp: OrmEditorComponent = this;
     // listener for inspector
-    this.myDiagramComponent.diagram.addDiagramListener('ChangedSelection', function(e) {
+    this.myDiagramComponent.diagram.addDiagramListener('ChangedSelection', e => {
       if (e.diagram.selection.count === 0) {
-        appComp.selectedNodeData = null;
+        this.selectedNodeData = null;
       }
       const node = e.diagram.selection.first();
-      appComp.state = produce(appComp.state, (draft: any) => {
+      this.state = produce(this.state, (draft: any) => {
         if (node instanceof go.Node) {
-          var idx = draft.diagramNodeData.findIndex((nd: any) => nd.id == node.data.id);
-          var nd = draft.diagramNodeData[idx];
-          draft.selectedNodeData = nd;
+          const idx = draft.diagramNodeData.findIndex((nd: any) => nd.id == node.data.id);
+          draft.selectedNodeData = draft.diagramNodeData[idx];
         } else {
           draft.selectedNodeData = null;
         }
       });
     });
-  } // end ngAfterViewInit
-
-
-  /**
-   * Update a node's data based on some change to an inspector row's input
-   * @param changedPropAndVal An object with 2 entries: "prop" (the node data prop changed), and "newVal" (the value the user entered in the inspector <input>)
-   */
-  public handleInspectorChange(changedPropAndVal:any) {
-
-    const path = changedPropAndVal.prop;
-    const value = changedPropAndVal.newVal;
-
-    this.state = produce(this.state, draft => {
-      var data = draft.selectedNodeData as any;
-      data[path] = value;
-      const key = data.id;
-      const idx = draft.diagramNodeData.findIndex(nd => nd.id == key);
-      if (idx >= 0) {
-        draft.diagramNodeData[idx] = data;
-        draft.skipsDiagramUpdate = false; // we need to sync GoJS data with this new app state, so do not skips Diagram update
-      }
-    });
   }
-
-
 }
