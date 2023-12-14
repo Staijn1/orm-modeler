@@ -1,5 +1,5 @@
 import {AfterViewInit, ChangeDetectorRef, Component, ViewChild} from '@angular/core';
-import {DataSyncService, DiagramComponent, GojsAngularModule, PaletteComponent} from 'gojs-angular';
+import {DataSyncService, DiagramComponent, GojsAngularModule} from 'gojs-angular';
 import * as go from 'gojs';
 import {Diagram} from 'gojs';
 import produce from 'immer';
@@ -15,10 +15,9 @@ import {CommonModule} from '@angular/common';
   templateUrl: './orm-editor.component.html',
   styleUrl: './orm-editor.component.scss'
 })
-export class OrmEditorComponent implements AfterViewInit{
+export class OrmEditorComponent implements AfterViewInit {
 
-  @ViewChild('myDiagram', { static: true }) public myDiagramComponent!: DiagramComponent;
-  @ViewChild('myPalette', { static: true }) public myPaletteComponent!: PaletteComponent;
+  @ViewChild('myDiagram', {static: true}) public myDiagramComponent!: DiagramComponent;
 
   // Big object that holds app-level state data
   // As of gojs-angular 2.0, immutability is expected and required of state for ease of change detection.
@@ -26,94 +25,59 @@ export class OrmEditorComponent implements AfterViewInit{
   public state = {
     // Diagram state props
     diagramNodeData: [
-      { id: 'Alpha', text: "Alpha", color: 'lightblue', loc: "0 0" },
-      { id: 'Beta', text: "Beta", color: 'orange', loc: "100 0" },
-      { id: 'Gamma', text: "Gamma", color: 'lightgreen', loc: "0 100" },
-      { id: 'Delta', text: "Delta", color: 'pink', loc: "100 100" }
+      {id: 'Principal', text: 'Principal', type: 'FactType', loc: '0 0'},
+      {id: 'Element', text: 'Element', type: 'FactType', loc: '100 0'},
+      {id: 'SubElement', text: 'SubElement', type: 'FactType', loc: '100 100'}
     ],
     diagramLinkData: [
-      { key: -1, from: 'Alpha', to: 'Beta', fromPort: 'r', toPort: '1' },
-      { key: -2, from: 'Alpha', to: 'Gamma', fromPort: 'b', toPort: 't' },
-      { key: -3, from: 'Beta', to: 'Beta' },
-      { key: -4, from: 'Gamma', to: 'Delta', fromPort: 'r', toPort: 'l' },
-      { key: -5, from: 'Delta', to: 'Alpha', fromPort: 't', toPort: 'r' }
+      {key: -1, from: 'Principal', to: 'Element', reading: ['has']},
+      {key: -2, from: 'Element', to: 'SubElement', reading: ['has']},
     ],
-    diagramModelData: { prop: 'value' },
+    diagramModelData: {prop: 'value'},
     skipsDiagramUpdate: false,
 
     // Palette state props
     paletteNodeData: [
-      { key: 'Epsilon', text: 'Epsilon', color: 'red' },
-      { key: 'Kappa', text: 'Kappa', color: 'purple' }
+      {key: 'FactType', type: 'FactType'},
     ],
-    paletteModelData: { prop: 'val' }
+    paletteModelData: {prop: 'val'}
   };
 
-  public diagramDivClassName: string = 'myDiagramDiv';
+  private diagram!: go.Diagram;
+  private palette!: go.Palette;
 
   /**
    * Initialize the diagram and templates
    */
   public initDiagram(): go.Diagram {
-
     const $ = go.GraphObject.make;
-    const dia = $(go.Diagram, {
+    this.diagram = $(go.Diagram, {
       'undoManager.isEnabled': true,
-      'clickCreatingTool.archetypeNodeData': { text: 'new node', color: 'lightblue' },
       model: $(go.GraphLinksModel,
         {
           nodeKeyProperty: 'id',
-          linkToPortIdProperty: 'toPort',
-          linkFromPortIdProperty: 'fromPort',
           linkKeyProperty: 'key' // IMPORTANT! must be defined for merges and data sync when using GraphLinksModel
         }
       )
     });
 
-    dia.commandHandler.archetypeGroupData = { key: 'Group', isGroup: true };
-
-    const makePort = (id: string, spot: go.Spot) => $(go.Shape, 'Circle',
-      {
-        opacity: .5,
-        fill: 'gray', strokeWidth: 0, desiredSize: new go.Size(8, 8),
-        portId: id, alignment: spot,
-        fromLinkable: true, toLinkable: true
-      }
-    )
-
     // define the Node template
-    dia.nodeTemplate =
-      $(go.Node, 'Spot',
+    this.diagram.nodeTemplate = $(go.Node, 'Spot',
+      $(go.Shape, 'RoundedRectangle',
         {
-          contextMenu:
-            $('ContextMenu',
-              $('ContextMenuButton',
-                $(go.TextBlock, 'Group'),
-                { click: function(e, obj) { e.diagram.commandHandler.groupSelection(); } },
-                new go.Binding('visible', '', function(o) {
-                  return o.diagram.selection.count > 1;
-                }).ofObject())
-            )
+          stroke: 'blue',
+          strokeWidth: 3,
+          fill: 'white',
+          desiredSize: new go.Size(100, 50)
         },
-        new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
-        $(go.Panel, 'Auto',
-          $(go.Shape, 'RoundedRectangle', { stroke: null },
-            new go.Binding('fill', 'color', (c, panel) => {
+        new go.Binding('figure', 'type', (type: string) => type === 'FactType' ? 'RoundedRectangle' : 'Circle'),
+      ),
+      $(go.TextBlock,  // Add this line
+        new go.Binding('text', 'text')  // Bind the text property of node data to the TextBlock
+      )
+    );
 
-              return c;
-            })
-          ),
-          $(go.TextBlock, { margin: 8, editable: true },
-            new go.Binding('text').makeTwoWay())
-        ),
-        // Ports
-        makePort('t', go.Spot.TopCenter),
-        makePort('l', go.Spot.Left),
-        makePort('r', go.Spot.Right),
-        makePort('b', go.Spot.BottomCenter)
-      );
-
-    return dia;
+    return this.diagram;
   }
 
   /**
@@ -123,7 +87,7 @@ export class OrmEditorComponent implements AfterViewInit{
    */
   public diagramModelChange = (changes: go.IncrementalData) => {
     if (!changes) return;
-    this.state = produce(this.state , (draft: any) => {
+    this.state = produce(this.state, (draft: any) => {
       // set skipsDiagramUpdate: true since GoJS already has this update
       // this way, we don't log an unneeded transaction in the Diagram's undoManager history
       draft.skipsDiagramUpdate = true;
@@ -148,28 +112,31 @@ export class OrmEditorComponent implements AfterViewInit{
     const palette = $(go.Palette);
 
     // define the Node template
-    palette.nodeTemplate =
-      $(go.Node, 'Auto',
-        $(go.Shape, 'RoundedRectangle',
-          {
-            stroke: null
-          },
-          new go.Binding('fill', 'color')
-        ),
-        $(go.TextBlock, { margin: 8 },
-          new go.Binding('text', 'key'))
-      );
+    palette.nodeTemplate = $(go.Node, 'Spot',
+      $(go.Shape, 'RoundedRectangle',
+        {
+          stroke: 'blue',
+          strokeWidth: 3,
+          fill: 'white',
+          desiredSize: new go.Size(100, 50)
+        },
+        new go.Binding('figure', 'type', (type: string) => type === 'FactType' ? 'RoundedRectangle' : 'Circle'),
+      ),
+      $(go.TextBlock,  // Add this line
+        new go.Binding('text', 'text')  // Bind the text property of node data to the TextBlock
+      )
+    )
 
     palette.model = $(go.GraphLinksModel);
     return palette;
   }
 
-  constructor(private cdr: ChangeDetectorRef) { }
+  constructor(private cdr: ChangeDetectorRef) {
+  }
 
   public initOverview(): go.Overview {
     const $ = go.GraphObject.make;
-    const overview = $(go.Overview);
-    return overview;
+    return $(go.Overview);
   }
 
   public observedDiagram!: Diagram;
