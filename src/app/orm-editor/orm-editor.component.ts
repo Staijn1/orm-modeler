@@ -16,7 +16,6 @@ import {CommonModule} from '@angular/common';
   styleUrl: './orm-editor.component.scss'
 })
 export class OrmEditorComponent implements AfterViewInit {
-
   @ViewChild('myDiagram', {static: true}) public myDiagramComponent!: DiagramComponent;
 
   // Big object that holds app-level state data
@@ -25,9 +24,10 @@ export class OrmEditorComponent implements AfterViewInit {
   public state = {
     // Diagram state props
     diagramNodeData: [
-      {id: 'Principal', text: 'Principal', type: 'FactType', loc: '0 0'},
-      {id: 'Element', text: 'Element', type: 'FactType', loc: '100 0'},
-      {id: 'SubElement', text: 'SubElement', type: 'FactType', loc: '100 100'}
+      {id: 'Principal', text: 'Principal', type: 'EntityType', loc: '0 0'},
+      {id: 'Element', text: 'Element', type: 'EntityType', loc: '100 0'},
+      {id: 'SubElement', text: 'SubElement', type: 'EntityType', loc: '100 100'},
+      {id: 'BinaryFactType', text: 'SubElement', type: 'BinaryFactType', loc: '200 100'}
     ],
     diagramLinkData: [
       {key: -1, from: 'Principal', to: 'Element', reading: ['has']},
@@ -38,13 +38,13 @@ export class OrmEditorComponent implements AfterViewInit {
 
     // Palette state props
     paletteNodeData: [
-      {key: 'FactType', type: 'FactType'},
+      {key: 'EntityType', type: 'EntityType', text: "Entity Type"},
+      {key: 'BinaryFactType', type: 'BinaryFactType', text: "Binary Fact Type"},
     ],
     paletteModelData: {prop: 'val'}
   };
 
   private diagram!: go.Diagram;
-  private palette!: go.Palette;
 
   /**
    * Initialize the diagram and templates
@@ -63,18 +63,43 @@ export class OrmEditorComponent implements AfterViewInit {
 
     // define the Node template
     this.diagram.nodeTemplate = $(go.Node, 'Spot',
-      $(go.Shape, 'RoundedRectangle',
-        {
-          stroke: 'blue',
-          strokeWidth: 3,
-          fill: 'white',
-          desiredSize: new go.Size(100, 50)
-        },
-        new go.Binding('figure', 'type', (type: string) => type === 'FactType' ? 'RoundedRectangle' : 'Circle'),
+      $(go.Panel, 'Spot',
+        $(go.Shape, 'RoundedRectangle',
+          {
+            stroke: 'blue',
+            strokeWidth: 3,
+            fill: 'white',
+            desiredSize: new go.Size(100, 50)
+          },
+          new go.Binding('figure', 'type', (type: string) => type === 'EntityType' ? 'RoundedRectangle' : 'Circle'),
+        ),
+        $(go.TextBlock,  // Add this line
+          new go.Binding('text', 'text')  // Bind the text property of node data to the TextBlock
+        ),
+        new go.Binding('visible', 'type', (type: string) => type === 'EntityType')
       ),
-      $(go.TextBlock,  // Add this line
-        new go.Binding('text', 'text')  // Bind the text property of node data to the TextBlock
-      )
+
+      // Binary Fact Type
+      $(go.Panel, 'Horizontal',
+        $(go.Shape, 'Rectangle',
+          {
+            stroke: 'black',
+            strokeWidth: 2,
+            fill: 'white',
+            desiredSize: new go.Size(25, 20)
+          },
+          new go.Binding('visible', 'type', (type: string) => type === 'BinaryFactType')
+        ),
+        $(go.Shape, 'Rectangle',
+          {
+            stroke: 'black',
+            strokeWidth: 2,
+            fill: 'white',
+            desiredSize: new go.Size(25, 20)
+          },
+          new go.Binding('visible', 'type', (type: string) => type === 'BinaryFactType')
+        )
+      ),
     );
 
     return this.diagram;
@@ -120,7 +145,7 @@ export class OrmEditorComponent implements AfterViewInit {
           fill: 'white',
           desiredSize: new go.Size(100, 50)
         },
-        new go.Binding('figure', 'type', (type: string) => type === 'FactType' ? 'RoundedRectangle' : 'Circle'),
+        new go.Binding('figure', 'type', (type: string) => type === 'EntityType' ? 'RoundedRectangle' : 'Circle'),
       ),
       $(go.TextBlock,  // Add this line
         new go.Binding('text', 'text')  // Bind the text property of node data to the TextBlock
