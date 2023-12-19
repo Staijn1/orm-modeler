@@ -8,9 +8,6 @@
       <h3>Links in app data</h3>
       <ul>
         @for (ld of state.diagramLinkData; track ld["key"]) {
-          <li>Link Key: {{ ld['key'] }}, To: {{ ld['to'] }}, From: {{ ld['from'] }}</li>
-        }
-        @for (ld of state.diagramLinkData; track ld["key"]) {
           <li>
             Link Key: {{ ld['key'] }}, To: {{ ld['to'] }}, From: {{ ld['from'] }}
           </li>
