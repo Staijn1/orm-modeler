@@ -4,6 +4,7 @@ import * as go from 'gojs';
 import {Diagram} from 'gojs';
 import produce from 'immer';
 import {CommonModule} from '@angular/common';
+import LinkLabelOnPathDraggingTool from "../gojs-extensions/LinkLabelOnPathDraggingTool";
 
 @Component({
   selector: 'app-orm-editor',
@@ -24,10 +25,10 @@ export class OrmEditorComponent implements AfterViewInit {
   public state = {
     // Diagram state props
     diagramNodeData: [
-      {id: 'Principal', text: 'Principal', type: 'EntityType', loc: '0 0'},
-      {id: 'Element', text: 'Element', type: 'EntityType', loc: '100 0'},
-      {id: 'SubElement', text: 'SubElement', type: 'EntityType', loc: '100 100'},
-      {id: 'BinaryFactType', text: 'SubElement', type: 'BinaryFactType', loc: '200 100'}
+      {id: 'Principal', text: 'Principal', type: 'EntityType'},
+      {id: 'Element', text: 'Element', type: 'EntityType'},
+      {id: 'SubElement', text: 'SubElement', type: 'EntityType'},
+      {id: 'BinaryFactType', text: 'SubElement', type: 'BinaryFactType'}
     ],
     diagramLinkData: [
       {key: -1, from: 'Principal', to: 'Element', reading: ['has']},
@@ -46,6 +47,7 @@ export class OrmEditorComponent implements AfterViewInit {
 
   private diagram!: go.Diagram;
 
+
   /**
    * Initialize the diagram and templates
    */
@@ -53,6 +55,7 @@ export class OrmEditorComponent implements AfterViewInit {
     const $ = go.GraphObject.make;
     this.diagram = $(go.Diagram, {
       'undoManager.isEnabled': true,
+      layout: $(go.ForceDirectedLayout, { defaultSpringLength: 50, defaultElectricalCharge: 50 }),
       model: $(go.GraphLinksModel,
         {
           nodeKeyProperty: 'id',
@@ -61,9 +64,15 @@ export class OrmEditorComponent implements AfterViewInit {
       )
     });
 
+    // install the LinkLabelDraggingTool as a "mouse move" tool
+    this.diagram.toolManager.mouseMoveTools.insertAt(0, new LinkLabelOnPathDraggingTool());
+
     // define the Node template
     this.diagram.nodeTemplate = $(go.Node, 'Spot',
       $(go.Panel, 'Spot',
+        {
+          fromLinkable: true
+        },
         $(go.Shape, 'RoundedRectangle',
           {
             stroke: 'blue',
@@ -86,9 +95,15 @@ export class OrmEditorComponent implements AfterViewInit {
             stroke: 'black',
             strokeWidth: 2,
             fill: 'white',
-            desiredSize: new go.Size(25, 20)
+            desiredSize: new go.Size(25, 20),
+            contextMenu: $("ContextMenu",
+              $("ContextMenuButton",
+                $(go.TextBlock, "Add uniqueness constraint", {margin: 5}),
+                {click: (e: any, obj: any) => this.handleAddUniquenessConstraintClick(e, obj)}
+              )
+            ),
           },
-          new go.Binding('visible', 'type', (type: string) => type === 'BinaryFactType')
+          new go.Binding('visible', 'type', (type: string) => type === 'BinaryFactType'),
         ),
         $(go.Shape, 'Rectangle',
           {
@@ -97,13 +112,37 @@ export class OrmEditorComponent implements AfterViewInit {
             fill: 'white',
             desiredSize: new go.Size(25, 20)
           },
-          new go.Binding('visible', 'type', (type: string) => type === 'BinaryFactType')
+          new go.Binding('visible', 'type', (type: string) => type === 'BinaryFactType'),
         )
       ),
     );
 
+    this.diagram.linkTemplate =
+      $(go.Link,
+        {
+          routing: go.Link.AvoidsNodes,
+          corner: 5,
+          relinkableFrom: true,
+          relinkableTo: true,
+          reshapable: true,
+          resegmentable: true,
+        },
+        $(go.Shape),
+        $(go.Shape, { toArrow: "OpenTriangle" }),
+        $(go.Panel, "Auto",
+          // mark this Panel as being a draggable label, and set default segment props
+          { _isLinkLabel: true, segmentIndex: NaN, segmentFraction: .5 },
+          $(go.Shape, { fill: "white" }),
+          $(go.TextBlock, "?", { margin: 3 },
+            new go.Binding("text", "reading")),
+          // remember any modified segment properties in the link data object
+          new go.Binding("segmentFraction").makeTwoWay()
+        )
+      );
+
     return this.diagram;
   }
+
 
   /**
    * When the diagram model changes, update app data to reflect those changes.
@@ -190,4 +229,7 @@ export class OrmEditorComponent implements AfterViewInit {
       });
     });
   }
+
+  private handleAddUniquenessConstraintClick(e: any, obj: any) {
+  };
 }
