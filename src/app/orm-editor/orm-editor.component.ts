@@ -1,10 +1,15 @@
-import {AfterViewInit, ChangeDetectorRef, Component, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, Input, ViewChild} from '@angular/core';
 import {DataSyncService, DiagramComponent, GojsAngularModule} from 'gojs-angular';
 import * as go from 'gojs';
 import {Diagram} from 'gojs';
 import produce from 'immer';
 import {CommonModule} from '@angular/common';
 import LinkLabelOnPathDraggingTool from "../gojs-extensions/LinkLabelOnPathDraggingTool";
+import {State} from "../types/State";
+
+
+
+
 
 @Component({
   selector: 'app-orm-editor',
@@ -22,28 +27,7 @@ export class OrmEditorComponent implements AfterViewInit {
   // Big object that holds app-level state data
   // As of gojs-angular 2.0, immutability is expected and required of state for ease of change detection.
   // Whenever updating state, immutability must be preserved. It is recommended to use immer for this, a small package that makes working with immutable data easy.
-  public state = {
-    // Diagram state props
-    diagramNodeData: [
-      {id: 'Principal', text: 'Principal', type: 'EntityType'},
-      {id: 'Element', text: 'Element', type: 'EntityType'},
-      {id: 'SubElement', text: 'SubElement', type: 'EntityType'},
-      {id: 'BinaryFactType', text: 'SubElement', type: 'BinaryFactType'}
-    ],
-    diagramLinkData: [
-      {key: -1, from: 'Principal', to: 'Element', reading: ['has']},
-      {key: -2, from: 'Element', to: 'SubElement', reading: ['has']},
-    ],
-    diagramModelData: {prop: 'value'},
-    skipsDiagramUpdate: false,
-
-    // Palette state props
-    paletteNodeData: [
-      {key: 'EntityType', type: 'EntityType', text: "Entity Type"},
-      {key: 'BinaryFactType', type: 'BinaryFactType', text: "Binary Fact Type"},
-    ],
-    paletteModelData: {prop: 'val'}
-  };
+  @Input() public state: undefined | State;
 
   private diagram!: go.Diagram;
 
