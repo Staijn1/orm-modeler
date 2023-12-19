@@ -54,17 +54,13 @@ export class OrmEditorComponent implements AfterViewInit {
     // define the Node template
     this.diagram.nodeTemplate = $(go.Node, 'Spot',
       $(go.Panel, 'Spot',
-        {
-          fromLinkable: true
-        },
         $(go.Shape, 'RoundedRectangle',
           {
             stroke: 'blue',
             strokeWidth: 3,
             fill: 'white',
             desiredSize: new go.Size(100, 50)
-          },
-          new go.Binding('figure', 'type', (type: string) => type === 'EntityType' ? 'RoundedRectangle' : 'Circle'),
+          }
         ),
         $(go.TextBlock,  // Add this line
           new go.Binding('text', 'text')  // Bind the text property of node data to the TextBlock
