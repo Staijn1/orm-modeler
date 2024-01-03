@@ -1,48 +1,60 @@
 @if (!state) {
-  <h1>No diagram state</h1>
-} @else {
-  <div class="grid grid-cols-3">
-    <h1>GoJS / Angular - Components Sample</h1>
-
-    <div class="box">
-      <h3>Links in app data</h3>
-      <ul>
-        @for (ld of state.diagramLinkData; track ld["key"]) {
-          <li>
-            Link Key: {{ ld['key'] }}, To: {{ ld['to'] }}, From: {{ ld['from'] }}
-          </li>
-        }
-      </ul>
-    </div>
-
-    <div class="box">
-      <h3>Nodes in app data</h3>
-      <ul>
-        @for (nd of state.diagramNodeData; track nd["id"]) {
-          <li>Node ID: {{ nd['id'] }}, Text: {{ nd['text'] }}, Type: {{ nd['type'] }}</li>
-        }
-      </ul>
-    </div>
-  </div>
-
-  <div class="flex gojs-container">
-    <div>
-      Palette
-      <gojs-palette #myPalette [initPalette]='initPalette'
-                    [modelData]='state.paletteModelData'
-                    [nodeDataArray]='state.paletteNodeData'
-                    divClassName="gojs-palette">
-      </gojs-palette>
-      <gojs-overview #myOverview [initOverview]='initOverview' divClassName="gojs-overview"
-                     [observedDiagram]='observedDiagram'></gojs-overview>
-    </div>
-    <div>
-      Diagram
-      <gojs-diagram #myDiagram (modelChange)='diagramModelChange($event)' [initDiagram]='initDiagram'
-                    [linkDataArray]='state.diagramLinkData'
-                    [modelData]='state.diagramModelData' [nodeDataArray]='state.diagramNodeData'
-                    divClassName="gojs-diagram">
-      </gojs-diagram>
-    </div>
+  <div class="no-diagram-overlay">
+    <p>No diagram data!</p>
   </div>
 }
+
+<div class="grid grid-cols-3">
+  <h1>GoJS / Angular - Components Sample</h1>
+
+  <div class="box">
+    <h3>Links in app data</h3>
+    <ul>
+      @for (ld of state?.diagramLinkData;track ld["key"]) {
+        <li>
+          Link Key: {{ ld['key'] }}, To: {{ ld['to'] }}, From: {{ ld['from'] }}
+        </li>
+      }
+    </ul>
+  </div>
+
+  <div class="box">
+    <h3>Nodes in app data</h3>
+    <ul>
+      @for (nd of state?.diagramNodeData;track nd["id"]) {
+        <li>Node ID: {{ nd['id'] }}, Text: {{ nd['text'] }}, Type: {{ nd['type'] }}</li>
+      }
+    </ul>
+  </div>
+</div>
+
+<div class="flex gojs-container">
+  <div>
+    Palette
+    <gojs-palette
+      #myPalette
+      [initPalette]='initPalette'
+      [modelData]='state?.paletteModelData ?? {}'
+      [nodeDataArray]='state?.paletteNodeData ?? []'
+      divClassName="gojs-palette">
+    </gojs-palette>
+    <gojs-overview
+      #myOverview
+      [initOverview]='initOverview'
+      [observedDiagram]='observedDiagram'
+      divClassName="gojs-overview">
+    </gojs-overview>
+  </div>
+  <div>
+    Diagram
+    <gojs-diagram
+      #myDiagram
+      (modelChange)='diagramModelChange($event)'
+      [initDiagram]='initDiagram'
+      [linkDataArray]='state?.diagramLinkData ?? []'
+      [modelData]='state?.diagramModelData ?? {}'
+      [nodeDataArray]='state?.diagramNodeData ?? []'
+      divClassName="gojs-diagram">
+    </gojs-diagram>
+  </div>
+</div>

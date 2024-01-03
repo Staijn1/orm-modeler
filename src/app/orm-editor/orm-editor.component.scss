@@ -1,1 +1,23 @@
 
+.no-diagram-overlay {
+  @apply
+  absolute
+  w-full
+  h-full
+  bg-opacity-75
+  bg-black
+  flex
+  flex-col
+  justify-center
+  items-center
+  z-50;
+
+  p {
+    @apply
+    bg-white
+    p-32
+    rounded
+    border-2
+    border-red-600;
+  }
+}
