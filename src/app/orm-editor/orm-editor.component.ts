@@ -1,7 +1,7 @@
 import {AfterViewInit, ChangeDetectorRef, Component, Input, ViewChild} from '@angular/core';
 import {DataSyncService, DiagramComponent, GojsAngularModule} from 'gojs-angular';
 import * as go from 'gojs';
-import {Diagram, GraphObject, Link, Node} from 'gojs';
+import {Diagram, GraphObject, Link, Margin, Node} from 'gojs';
 import produce from 'immer';
 import {CommonModule} from '@angular/common';
 import {State} from '../types/State';
@@ -164,27 +164,36 @@ export class OrmEditorComponent implements AfterViewInit {
   private createBinaryFactTypeTemplate() {
     const $ = go.GraphObject.make;
     return $(go.Node, 'Spot',
-      $(go.Panel, 'Horizontal',
-        $(go.Shape, 'Rectangle',
-          {
-            stroke: 'black',
-            strokeWidth: 2,
-            fill: 'white',
-            desiredSize: new go.Size(25, 20),
-            contextMenu: $('ContextMenu',
-              $('ContextMenuButton',
-                $(go.TextBlock, 'Add uniqueness constraint', {margin: 5}),
-                {click: (e: any, obj: any) => this.handleAddUniquenessConstraintClick(e, obj)}
-              )
-            ),
-          },
+      $(go.Panel, 'Vertical',  // Change this to 'Vertical'
+        $(go.Panel, 'Horizontal',
+          $(go.Shape, 'Rectangle',
+            {
+              stroke: 'black',
+              strokeWidth: 2,
+              fill: 'white',
+              desiredSize: new go.Size(25, 20),
+              contextMenu: $('ContextMenu',
+                $('ContextMenuButton',
+                  $(go.TextBlock, 'Add uniqueness constraint', {margin: 5}),
+                  {click: (e: any, obj: any) => this.handleAddUniquenessConstraintClick(e, obj)}
+                )
+              ),
+            },
+          ),
+          $(go.Shape, 'Rectangle',
+            {
+              stroke: 'black',
+              strokeWidth: 2,
+              fill: 'white',
+              desiredSize: new go.Size(25, 20)
+            },
+          ),
         ),
-        $(go.Shape, 'Rectangle',
+        $(go.TextBlock,
+          new go.Binding('text', 'readings'),
           {
-            stroke: 'black',
-            strokeWidth: 2,
-            fill: 'white',
-            desiredSize: new go.Size(25, 20)
+            margin: new Margin(5, 0, 0, 0),
+            font: '14px sans-serif', // This will change the font size to 14px and make it bold, same as EntityType
           },
         )
       ),
@@ -237,7 +246,8 @@ export class OrmEditorComponent implements AfterViewInit {
     // Create a new BinaryFactType node with the Readings from the fact object
     const binaryFactTypeNode = {
       id: this.generateRandomId(),
-      text: fact.Readings.join(', '),
+      readings: fact.Readings,
+      text: fact.Readings.join('/'),
       category: 'BinaryFactType'
     }
 
@@ -259,6 +269,7 @@ export class OrmEditorComponent implements AfterViewInit {
 
     // Add the links to the diagram
     (this.diagram.model as go.GraphLinksModel).addLinkDataCollection([linkFromEntityType, linkFromBinaryFactType]);
+    this.diagram.layoutDiagram(true)
   }
 
   private generateRandomId() {

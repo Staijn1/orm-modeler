@@ -19,13 +19,12 @@ export class AppComponent {
   state: State = {
     diagramNodeData: [
       {id: 1, text: 'Principal', category: 'EntityType'},
-      {id: 2, text: 'Element', category: 'EntityType'},
-      {id: 3, text: 'SubElement', category: 'EntityType'},
-      {id: 4, text: 'SubElement', category: 'BinaryFactType', readings: ['has']},
+      {id: 2, text: 'Name', category: 'ValueType'},
+      {id: 3, category: 'BinaryFactType', readings: ['has']},
     ],
     diagramLinkData: [
-      {key: -1, from: 1, to: 2},
-      {key: -2, from: 2, to: 3},
+      {key: -1, from: 1, to: 3},
+      {key: -2, from: 3, to: 2},
     ],
     diagramModelData: {prop: 'value'},
     skipsDiagramUpdate: false,
