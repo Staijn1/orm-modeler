@@ -1,0 +1,15 @@
+<pre>
+  <code
+    contenteditable="true"
+    (input)="onInput($event)"
+    [highlight]="fact"
+    [languages]="['orm']"
+  ></code>
+</pre>
+
+
+<pre><code [highlight]="fact" [languages]="['orm']" (highlighted)="onHighlight($event)" [lineNumbers]="true"></code></pre>
+
+
+<h4>Highlight response</h4>
+<pre>{{ response | json }}</pre>
