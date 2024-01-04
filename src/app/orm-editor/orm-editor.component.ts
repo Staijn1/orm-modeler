@@ -6,10 +6,7 @@ import produce from 'immer';
 import {CommonModule} from '@angular/common';
 import LinkLabelOnPathDraggingTool from "../gojs-extensions/LinkLabelOnPathDraggingTool";
 import {State} from "../types/State";
-import {FactEditorComponent} from "../fact-editor/fact-editor.component";
-
-
-
+import {Fact} from "../types/ORM";
 
 
 @Component({
@@ -17,8 +14,7 @@ import {FactEditorComponent} from "../fact-editor/fact-editor.component";
   standalone: true,
   imports: [
     CommonModule,
-    GojsAngularModule,
-    FactEditorComponent
+    GojsAngularModule
   ],
   templateUrl: './orm-editor.component.html',
   styleUrl: './orm-editor.component.scss'
@@ -41,7 +37,7 @@ export class OrmEditorComponent implements AfterViewInit {
     const $ = go.GraphObject.make;
     this.diagram = $(go.Diagram, {
       'undoManager.isEnabled': true,
-      layout: $(go.ForceDirectedLayout, { defaultSpringLength: 50, defaultElectricalCharge: 50 }),
+      layout: $(go.ForceDirectedLayout, {defaultSpringLength: 50, defaultElectricalCharge: 50}),
       model: $(go.GraphLinksModel,
         {
           nodeKeyProperty: 'id',
@@ -110,12 +106,12 @@ export class OrmEditorComponent implements AfterViewInit {
           resegmentable: true,
         },
         $(go.Shape),
-        $(go.Shape, { toArrow: "OpenTriangle" }),
+        $(go.Shape, {toArrow: "OpenTriangle"}),
         $(go.Panel, "Auto",
           // mark this Panel as being a draggable label, and set default segment props
-          { _isLinkLabel: true, segmentIndex: NaN, segmentFraction: .5 },
-          $(go.Shape, { fill: "white" }),
-          $(go.TextBlock, "?", { margin: 3 },
+          {_isLinkLabel: true, segmentIndex: NaN, segmentFraction: .5},
+          $(go.Shape, {fill: "white"}),
+          $(go.TextBlock, "?", {margin: 3},
             new go.Binding("text", "reading")),
           // remember any modified segment properties in the link data object
           new go.Binding("segmentFraction").makeTwoWay()
@@ -214,4 +210,9 @@ export class OrmEditorComponent implements AfterViewInit {
 
   private handleAddUniquenessConstraintClick(e: any, obj: any) {
   };
+
+
+  public updateFact(fact: Fact) {
+
+  }
 }

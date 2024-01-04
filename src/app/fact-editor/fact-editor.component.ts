@@ -18,7 +18,7 @@ import {Fact} from "../types/ORM";
 })
 export class FactEditorComponent {
   @ViewChild('editor') editor!: ElementRef<HTMLElement>;
-  @Output() createdFact = new EventEmitter<Fact>();
+  @Output() updatedFact = new EventEmitter<Fact>();
   @Input() fact = '';
 
   constructor(private hljsLoader: HighlightLoader, private readonly hljsService: HighlightJS) {
@@ -53,7 +53,7 @@ export class FactEditorComponent {
     })
   }
 
-  private createFact() {
+  private parseFactStringToObject(): Fact {
     const identifiersElements = this.editor.nativeElement.querySelectorAll('.hljs-identifier');
     const entityNamesElements = this.editor.nativeElement.querySelectorAll('.hljs-entity-name');
     const readingsElements = this.editor.nativeElement.querySelectorAll('.hljs-reading');
@@ -72,7 +72,7 @@ export class FactEditorComponent {
     const targetTypeName = Array.from(entityNamesElements, el => el.textContent)[1] ?? '';
 
 
-    const fact: Fact = {
+    return {
       EntityType: {
         Name: entityTypeName,
         Identifier: {
@@ -86,14 +86,13 @@ export class FactEditorComponent {
         Datatype: undefined
       }
     };
-
-    this.createdFact.emit(fact);
   }
 
   onTyping($event: KeyboardEvent) {
     if ($event.key === 'Enter') {
       $event.preventDefault();
-      this.createFact();
+      const fact = this.parseFactStringToObject();
+      this.updatedFact.emit(fact);
     }
     this.fact = ($event.target as HTMLInputElement).value;
   }

@@ -1,17 +1,21 @@
-import {Component} from '@angular/core';
+import {Component, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterOutlet} from '@angular/router';
 import {OrmEditorComponent} from "./orm-editor/orm-editor.component";
 import {State} from "./types/State";
+import {FactEditorComponent} from "./fact-editor/fact-editor.component";
+import {Fact} from "./types/ORM";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, OrmEditorComponent],
+  imports: [CommonModule, RouterOutlet, OrmEditorComponent, FactEditorComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
+  @ViewChild(OrmEditorComponent) ormEditor!: OrmEditorComponent;
+
   state: State = {
     diagramNodeData: [
       {id: 'Principal', text: 'Principal', type: 'EntityType'},
@@ -33,4 +37,8 @@ export class AppComponent {
     ],
     paletteModelData: {prop: 'val'}
   };
+
+  onFactUpdated(fact: Fact) {
+    this.ormEditor.updateFact(fact);
+  }
 }
