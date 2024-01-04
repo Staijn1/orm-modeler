@@ -33,12 +33,6 @@ $diagram-width: calc(100vw - #{$palette-width});
   background: whitesmoke;
 }
 
-.box {
-  border: solid 1px black;
-  background: whitesmoke;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
-
 .hljs-entity-name {
   color: red !important;
 }
