@@ -1,14 +1,12 @@
 #fact-editor-container {
-  position: relative;
+  @apply w-full h-full relative;
 }
 
 /* Both elements need the same text and space styling so they are directly on top of each other */
 #editing, #highlighted-content {
-  margin: 10px;
+  @apply w-full h-full;
   padding: 10px;
   border: 0;
-  width: calc(100% - 32px);
-  height: 10em;
   overflow: hidden;
   position: absolute;
   top: 0;

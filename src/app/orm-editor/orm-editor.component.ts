@@ -6,6 +6,7 @@ import produce from 'immer';
 import {CommonModule} from '@angular/common';
 import LinkLabelOnPathDraggingTool from "../gojs-extensions/LinkLabelOnPathDraggingTool";
 import {State} from "../types/State";
+import {FactEditorComponent} from "../fact-editor/fact-editor.component";
 
 
 
@@ -16,7 +17,8 @@ import {State} from "../types/State";
   standalone: true,
   imports: [
     CommonModule,
-    GojsAngularModule
+    GojsAngularModule,
+    FactEditorComponent
   ],
   templateUrl: './orm-editor.component.html',
   styleUrl: './orm-editor.component.scss'

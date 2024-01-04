@@ -3,12 +3,11 @@ import {CommonModule} from '@angular/common';
 import {RouterOutlet} from '@angular/router';
 import {OrmEditorComponent} from "./orm-editor/orm-editor.component";
 import {State} from "./types/State";
-import {FactEditorComponent} from "./fact-editor/fact-editor.component";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, OrmEditorComponent, FactEditorComponent],
+  imports: [CommonModule, RouterOutlet, OrmEditorComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
