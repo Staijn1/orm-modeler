@@ -12,11 +12,9 @@ export const appConfig: ApplicationConfig = {
         lineNumbers: true,
         coreLibraryLoader: () => import('highlight.js/lib/core'),
         lineNumbersLoader: () => import('ngx-highlightjs/line-numbers'),
-        themePath: 'node_modules/highlight.js/styles/github.css',
         languages: {
+          // We need to import at least one language, even though we add our own ORM language
           typescript: () => import('highlight.js/lib/languages/typescript'),
-          css: () => import('highlight.js/lib/languages/css'),
-          xml: () => import('highlight.js/lib/languages/xml'),
         },
       },
     },

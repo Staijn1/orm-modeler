@@ -1,3 +1,4 @@
+@import "highlight.js/styles/vs2015.css";
 @import url(http://fonts.googleapis.com/css?family=Roboto:400,400italic,500,500italic,700,700italic,900,900italic,300italic,300,100italic,100);
 
 @tailwind base;
@@ -36,4 +37,16 @@ $diagram-width: calc(100vw - #{$palette-width});
   border: solid 1px black;
   background: whitesmoke;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.hljs-entity-name {
+  color: red !important;
+}
+
+.hljs-identifier {
+  color: purple !important;
+}
+
+.hljs-reading {
+  color: #0d07ff !important;
 }
