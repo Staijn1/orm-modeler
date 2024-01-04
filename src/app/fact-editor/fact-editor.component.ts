@@ -1,5 +1,5 @@
-import {Component, ElementRef, EventEmitter, Output, ViewChild} from '@angular/core';
-import {HighlightAutoResult, HighlightJS, HighlightLoader, HighlightModule} from "ngx-highlightjs";
+import {Component, ElementRef, EventEmitter, Input, Output, ViewChild} from '@angular/core';
+import {HighlightJS, HighlightLoader, HighlightModule} from "ngx-highlightjs";
 import {FormsModule} from "@angular/forms";
 import {JsonPipe} from "@angular/common";
 import {Language, Mode} from "highlight.js";
@@ -19,7 +19,7 @@ import {Fact} from "../types/ORM";
 export class FactEditorComponent {
   @ViewChild('editor') editor!: ElementRef<HTMLElement>;
   @Output() createdFact = new EventEmitter<Fact>();
-  fact = `"MOCReferenceAttribute(.id) has Value()", "ReferenceAttributeValue(.id) is active YesNo()", "ReferenceAttributeValue(.id) is from dwh YesNo()"`;
+  @Input() fact = '';
 
   constructor(private hljsLoader: HighlightLoader, private readonly hljsService: HighlightJS) {
     this.hljsLoader.ready.subscribe(() => {
@@ -51,10 +51,6 @@ export class FactEditorComponent {
         return language;
       });
     })
-  }
-
-  onHighlighted($event: HighlightAutoResult) {
-    console.log($event);
   }
 
   private createFact() {
