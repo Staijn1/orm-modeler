@@ -1,7 +1,7 @@
 import {AfterViewInit, ChangeDetectorRef, Component, Input, ViewChild} from '@angular/core';
 import {DataSyncService, DiagramComponent, GojsAngularModule} from 'gojs-angular';
 import * as go from 'gojs';
-import {Diagram} from 'gojs';
+import {Diagram, GraphObject, Link, Node} from 'gojs';
 import produce from 'immer';
 import {CommonModule} from '@angular/common';
 import {State} from '../types/State';
@@ -51,6 +51,8 @@ export class OrmEditorComponent implements AfterViewInit {
     });
 
     this.diagram.nodeTemplateMap = this.createTemplateMap();
+    this.diagram.toolManager.linkingTool.linkValidation = this.validateLink;
+    this.diagram.toolManager.relinkingTool.linkValidation = this.validateLink;
     return this.diagram;
   }
 
@@ -261,5 +263,13 @@ export class OrmEditorComponent implements AfterViewInit {
 
   private generateRandomId() {
     return Math.random().toString();
+  }
+
+  private validateLink(fromNode: Node, fromPort: GraphObject, toNode: Node, toPort: GraphObject, link: Link) {
+    // A link cannot connect to itself
+    if (fromNode === toNode) return false;
+
+    // Only BinaryFactType nodes can be connected to EntityType or ValueType nodes
+    return fromNode.category === 'BinaryFactType';
   }
 }

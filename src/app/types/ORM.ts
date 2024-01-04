@@ -22,4 +22,3 @@ export type ValueType = {
   Name: string
   Datatype: Datatype | undefined
 }
-
