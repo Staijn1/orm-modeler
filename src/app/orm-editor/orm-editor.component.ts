@@ -4,9 +4,8 @@ import * as go from 'gojs';
 import {Diagram} from 'gojs';
 import produce from 'immer';
 import {CommonModule} from '@angular/common';
-import LinkLabelOnPathDraggingTool from "../gojs-extensions/LinkLabelOnPathDraggingTool";
-import {State} from "../types/State";
-import {Fact} from "../types/ORM";
+import {State} from '../types/State';
+import {EntityType, Fact} from '../types/ORM';
 
 
 @Component({
@@ -170,9 +169,9 @@ export class OrmEditorComponent implements AfterViewInit {
             strokeWidth: 2,
             fill: 'white',
             desiredSize: new go.Size(25, 20),
-            contextMenu: $("ContextMenu",
-              $("ContextMenuButton",
-                $(go.TextBlock, "Add uniqueness constraint", {margin: 5}),
+            contextMenu: $('ContextMenu',
+              $('ContextMenuButton',
+                $(go.TextBlock, 'Add uniqueness constraint', {margin: 5}),
                 {click: (e: any, obj: any) => this.handleAddUniquenessConstraintClick(e, obj)}
               )
             ),
@@ -194,16 +193,17 @@ export class OrmEditorComponent implements AfterViewInit {
     const $ = go.GraphObject.make;
     return $(go.Node, 'Spot',
       $(go.Panel, 'Spot',
-        $(go.Shape, 'Circle',
+        $(go.Shape, 'RoundedRectangle',
           {
             stroke: 'blue',
             strokeWidth: 3,
+            strokeDashArray: [4, 2], // Add this line for dashed border
             fill: 'white',
-            desiredSize: new go.Size(50, 50)
+            desiredSize: new go.Size(100, 50)
           }
         ),
-        $(go.TextBlock,  // Add this line
-          new go.Binding('text', 'text')  // Bind the text property of node data to the TextBlock
+        $(go.TextBlock,
+          new go.Binding('text', 'text')
         ),
       ),
     );
@@ -216,7 +216,50 @@ export class OrmEditorComponent implements AfterViewInit {
    * @param fact
    */
   public updateFact(fact: Fact) {
-    // If the TargetType does not have an identifier, it is a ValueType, otherwise it is an EntityType
+    const entityTypeNode = {
+      id: this.generateRandomId(),
+      text: fact.EntityType.Name,
+      category: 'EntityType'
+    }
 
+    // If the TargetType does not have an identifier, it is a ValueType, otherwise it is an EntityType
+    const targetType = (fact.Target as EntityType).Identifier ? 'EntityType' : 'ValueType';
+
+    // Create a new node for the EntityType or ValueType
+    const targetNode = {
+      id: Math.random().toString(),
+      text: fact.Target.Name,
+      category: targetType
+    }
+
+    // Create a new BinaryFactType node with the Readings from the fact object
+    const binaryFactTypeNode = {
+      id: this.generateRandomId(),
+      text: fact.Readings.join(', '),
+      category: 'BinaryFactType'
+    }
+
+    this.diagram.model.addNodeData(entityTypeNode);
+    this.diagram.model.addNodeData(targetNode);
+    this.diagram.model.addNodeData(binaryFactTypeNode);
+    // Create links between the EntityType or ValueType node and the BinaryFactType node
+    const linkFromEntityType = {
+      key: this.generateRandomId(),
+      from: entityTypeNode.id,
+      to: binaryFactTypeNode.id
+    };
+
+    const linkFromBinaryFactType = {
+      key: this.generateRandomId(),
+      from: binaryFactTypeNode.id,
+      to: targetNode.id
+    };
+
+    // Add the links to the diagram
+    (this.diagram.model as go.GraphLinksModel).addLinkDataCollection([linkFromEntityType, linkFromBinaryFactType]);
+  }
+
+  private generateRandomId() {
+    return Math.random().toString();
   }
 }
