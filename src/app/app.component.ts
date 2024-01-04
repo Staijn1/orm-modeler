@@ -18,22 +18,22 @@ export class AppComponent {
 
   state: State = {
     diagramNodeData: [
-      {id: 'Principal', text: 'Principal', type: 'EntityType'},
-      {id: 'Element', text: 'Element', type: 'EntityType'},
-      {id: 'SubElement', text: 'SubElement', type: 'EntityType'},
-      {id: 'BinaryFactType', text: 'SubElement', type: 'BinaryFactType'}
+      {id: 'Principal', text: 'Principal', category: 'EntityType'},
+      {id: 'Element', text: 'Element', category: 'EntityType'},
+      {id: 'SubElement', text: 'SubElement', category: 'EntityType'},
+      {id: 'BinaryFactType', text: 'SubElement', category: 'BinaryFactType', readings: ['has']},
     ],
     diagramLinkData: [
-      {key: -1, from: 'Principal', to: 'Element', reading: ['has']},
-      {key: -2, from: 'Element', to: 'SubElement', reading: ['has']},
+      {key: -1, from: 'Principal', to: 'Element'},
+      {key: -2, from: 'Element', to: 'SubElement'},
     ],
     diagramModelData: {prop: 'value'},
     skipsDiagramUpdate: false,
 
     // Palette state props
     paletteNodeData: [
-      {key: 'EntityType', type: 'EntityType', text: "Entity Type"},
-      {key: 'BinaryFactType', type: 'BinaryFactType', text: "Binary Fact Type"},
+      {key: 'EntityType', category: 'EntityType', text: "Entity Type"},
+      {key: 'BinaryFactType', category: 'BinaryFactType', text: "Binary Fact Type"},
     ],
     paletteModelData: {prop: 'val'}
   };

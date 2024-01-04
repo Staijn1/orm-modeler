@@ -29,6 +29,11 @@ export class OrmEditorComponent implements AfterViewInit {
 
   private diagram!: go.Diagram;
 
+  constructor(private cdr: ChangeDetectorRef) {
+    // Fix scoping issues
+    this.initDiagram = this.initDiagram.bind(this);
+    this.initPalette = this.initPalette.bind(this);
+  }
 
   /**
    * Initialize the diagram and templates
@@ -46,78 +51,7 @@ export class OrmEditorComponent implements AfterViewInit {
       )
     });
 
-    // install the LinkLabelDraggingTool as a "mouse move" tool
-    this.diagram.toolManager.mouseMoveTools.insertAt(0, new LinkLabelOnPathDraggingTool());
-
-    // define the Node template
-    this.diagram.nodeTemplate = $(go.Node, 'Spot',
-      $(go.Panel, 'Spot',
-        $(go.Shape, 'RoundedRectangle',
-          {
-            stroke: 'blue',
-            strokeWidth: 3,
-            fill: 'white',
-            desiredSize: new go.Size(100, 50)
-          }
-        ),
-        $(go.TextBlock,  // Add this line
-          new go.Binding('text', 'text')  // Bind the text property of node data to the TextBlock
-        ),
-        new go.Binding('visible', 'type', (type: string) => type === 'EntityType')
-      ),
-
-      // Binary Fact Type
-      $(go.Panel, 'Horizontal',
-        $(go.Shape, 'Rectangle',
-          {
-            stroke: 'black',
-            strokeWidth: 2,
-            fill: 'white',
-            desiredSize: new go.Size(25, 20),
-            contextMenu: $("ContextMenu",
-              $("ContextMenuButton",
-                $(go.TextBlock, "Add uniqueness constraint", {margin: 5}),
-                {click: (e: any, obj: any) => this.handleAddUniquenessConstraintClick(e, obj)}
-              )
-            ),
-          },
-          new go.Binding('visible', 'type', (type: string) => type === 'BinaryFactType'),
-        ),
-        $(go.Shape, 'Rectangle',
-          {
-            stroke: 'black',
-            strokeWidth: 2,
-            fill: 'white',
-            desiredSize: new go.Size(25, 20)
-          },
-          new go.Binding('visible', 'type', (type: string) => type === 'BinaryFactType'),
-        )
-      ),
-    );
-
-    this.diagram.linkTemplate =
-      $(go.Link,
-        {
-          routing: go.Link.AvoidsNodes,
-          corner: 5,
-          relinkableFrom: true,
-          relinkableTo: true,
-          reshapable: true,
-          resegmentable: true,
-        },
-        $(go.Shape),
-        $(go.Shape, {toArrow: "OpenTriangle"}),
-        $(go.Panel, "Auto",
-          // mark this Panel as being a draggable label, and set default segment props
-          {_isLinkLabel: true, segmentIndex: NaN, segmentFraction: .5},
-          $(go.Shape, {fill: "white"}),
-          $(go.TextBlock, "?", {margin: 3},
-            new go.Binding("text", "reading")),
-          // remember any modified segment properties in the link data object
-          new go.Binding("segmentFraction").makeTwoWay()
-        )
-      );
-
+    this.diagram.nodeTemplateMap = this.createTemplateMap();
     return this.diagram;
   }
 
@@ -152,28 +86,9 @@ export class OrmEditorComponent implements AfterViewInit {
   public initPalette(): go.Palette {
     const $ = go.GraphObject.make;
     const palette = $(go.Palette);
-
-    // define the Node template
-    palette.nodeTemplate = $(go.Node, 'Spot',
-      $(go.Shape, 'RoundedRectangle',
-        {
-          stroke: 'blue',
-          strokeWidth: 3,
-          fill: 'white',
-          desiredSize: new go.Size(100, 50)
-        },
-        new go.Binding('figure', 'type', (type: string) => type === 'EntityType' ? 'RoundedRectangle' : 'Circle'),
-      ),
-      $(go.TextBlock,  // Add this line
-        new go.Binding('text', 'text')  // Bind the text property of node data to the TextBlock
-      )
-    )
-
     palette.model = $(go.GraphLinksModel);
+    palette.nodeTemplateMap = this.createTemplateMap();
     return palette;
-  }
-
-  constructor(private cdr: ChangeDetectorRef) {
   }
 
   public initOverview(): go.Overview {
@@ -211,8 +126,97 @@ export class OrmEditorComponent implements AfterViewInit {
   private handleAddUniquenessConstraintClick(e: any, obj: any) {
   };
 
+  private createTemplateMap(): go.Map<string, go.Node> {
+    const nodeTemplateMap = new go.Map<string, go.Node>();
 
+    const entityTypeTemplate = this.createEntityTypeTemplate();
+    nodeTemplateMap.add('EntityType', entityTypeTemplate);
+
+    const binaryFactTypeTemplate = this.createBinaryFactTypeTemplate();
+    nodeTemplateMap.add('BinaryFactType', binaryFactTypeTemplate);
+
+    const valueTypeTemplate = this.createValueTypeTemplate();
+    nodeTemplateMap.add('ValueType', valueTypeTemplate);
+
+    return nodeTemplateMap;
+  }
+
+  private createEntityTypeTemplate() {
+    const $ = go.GraphObject.make;
+    return $(go.Node, 'Spot',
+      $(go.Panel, 'Spot',
+        $(go.Shape, 'RoundedRectangle',
+          {
+            stroke: 'blue',
+            strokeWidth: 3,
+            fill: 'white',
+            desiredSize: new go.Size(100, 50)
+          }
+        ),
+        $(go.TextBlock,  // Add this line
+          new go.Binding('text', 'text')  // Bind the text property of node data to the TextBlock
+        ),
+      ),
+    );
+  }
+
+  private createBinaryFactTypeTemplate() {
+    const $ = go.GraphObject.make;
+    return $(go.Node, 'Spot',
+      $(go.Panel, 'Horizontal',
+        $(go.Shape, 'Rectangle',
+          {
+            stroke: 'black',
+            strokeWidth: 2,
+            fill: 'white',
+            desiredSize: new go.Size(25, 20),
+            contextMenu: $("ContextMenu",
+              $("ContextMenuButton",
+                $(go.TextBlock, "Add uniqueness constraint", {margin: 5}),
+                {click: (e: any, obj: any) => this.handleAddUniquenessConstraintClick(e, obj)}
+              )
+            ),
+          },
+        ),
+        $(go.Shape, 'Rectangle',
+          {
+            stroke: 'black',
+            strokeWidth: 2,
+            fill: 'white',
+            desiredSize: new go.Size(25, 20)
+          },
+        )
+      ),
+    );
+  }
+
+  private createValueTypeTemplate() {
+    const $ = go.GraphObject.make;
+    return $(go.Node, 'Spot',
+      $(go.Panel, 'Spot',
+        $(go.Shape, 'Circle',
+          {
+            stroke: 'blue',
+            strokeWidth: 3,
+            fill: 'white',
+            desiredSize: new go.Size(50, 50)
+          }
+        ),
+        $(go.TextBlock,  // Add this line
+          new go.Binding('text', 'text')  // Bind the text property of node data to the TextBlock
+        ),
+      ),
+    );
+  }
+
+  /**
+   * Handle a fact creation or update
+   * If the fact is new, add it to the diagram, otherwise update the related links
+   * todo: handle update
+   * @param fact
+   */
   public updateFact(fact: Fact) {
+    // If the TargetType does not have an identifier, it is a ValueType, otherwise it is an EntityType
 
   }
 }
