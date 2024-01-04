@@ -1,20 +1,23 @@
-<textarea
-  id="editing"
-  spellcheck="false"
-  [ngModel]="fact"
-  (input)="onInput($event);">
-</textarea>
+<div id="fact-editor-container">
+  <textarea
+    id="editing"
+    spellcheck="false"
+    [ngModel]="fact"
+    (keyup)="onTyping($event)">
+  </textarea>
 
 
-<!--
-This pre code is not editable, but it is where the ORM highlighting takes place.
-Using CSS, a transparent textarea is placed over the top of this pre code so it looks like it is editable.
--->
-<pre>
-  <code
-    id="highlighted-content"
-    #editor
-    [highlight]="fact"
-    [languages]="['orm']">
-  </code>
-</pre>
+  <!--
+  This pre code is not editable, but it is where the ORM highlighting takes place.
+  Using CSS, a transparent textarea is placed over the top of this pre code so it looks like it is editable.
+  -->
+  <pre>
+    <code
+      id="highlighted-content"
+      #editor
+      (highlighted)="onHighlighted($event)"
+      [highlight]="fact"
+      [languages]="['orm']">
+    </code>
+  </pre>
+</div>

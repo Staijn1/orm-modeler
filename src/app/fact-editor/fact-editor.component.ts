@@ -1,8 +1,9 @@
-import {Component, ElementRef, ViewChild} from '@angular/core';
-import {HighlightJS, HighlightLoader, HighlightModule} from "ngx-highlightjs";
+import {Component, ElementRef, EventEmitter, Output, ViewChild} from '@angular/core';
+import {HighlightAutoResult, HighlightJS, HighlightLoader, HighlightModule} from "ngx-highlightjs";
 import {FormsModule} from "@angular/forms";
 import {JsonPipe} from "@angular/common";
 import {Language, Mode} from "highlight.js";
+import {Fact} from "../types/ORM";
 
 @Component({
   selector: 'app-fact-editor',
@@ -17,7 +18,7 @@ import {Language, Mode} from "highlight.js";
 })
 export class FactEditorComponent {
   @ViewChild('editor') editor!: ElementRef<HTMLElement>;
-
+  @Output() createdFact = new EventEmitter<Fact>();
   fact = `"MOCReferenceAttribute(.id) has Value()", "ReferenceAttributeValue(.id) is active YesNo()", "ReferenceAttributeValue(.id) is from dwh YesNo()"`;
 
   constructor(private hljsLoader: HighlightLoader, private readonly hljsService: HighlightJS) {
@@ -52,7 +53,54 @@ export class FactEditorComponent {
     })
   }
 
-  onInput($event: Event) {
+  onHighlighted($event: HighlightAutoResult) {
+    console.log($event);
+  }
+
+  private createFact() {
+    const identifiersElements = this.editor.nativeElement.querySelectorAll('.hljs-identifier');
+    const entityNamesElements = this.editor.nativeElement.querySelectorAll('.hljs-entity-name');
+    const readingsElements = this.editor.nativeElement.querySelectorAll('.hljs-reading');
+
+    if (identifiersElements.length !== 1) throw new Error('Expected exactly one identifier in the Entity Type');
+    if (entityNamesElements.length !== 2) throw new Error('Expected exactly two type names in the fact');
+    // todo?
+    if (readingsElements.length !== 1) throw new Error('Non-binary facts are not supported yet');
+
+    const entityTypeName = Array.from(entityNamesElements, el => el.textContent)[0] ?? '';
+    const entityTypeIdentifierName = Array.from(identifiersElements, el => el.textContent)[0] ?? '';
+    // todo detect based on identifier name
+    const entityTypeIdentifierDatatype = 'number';
+    const rawReading = Array.from(readingsElements, el => el.textContent)[0] ?? '';
+    const readings = rawReading.split('/');
+    const targetTypeName = Array.from(entityNamesElements, el => el.textContent)[1] ?? '';
+
+
+    const fact: Fact = {
+      EntityType: {
+        Name: entityTypeName,
+        Identifier: {
+          Name: entityTypeIdentifierName,
+          Datatype: entityTypeIdentifierDatatype
+        }
+      },
+      Readings: readings,
+      Target: {
+        Name: targetTypeName,
+        Datatype: undefined
+      }
+    };
+
+    this.createdFact.emit(fact);
+  }
+
+  onTyping($event: KeyboardEvent) {
+    if ($event.key === 'Enter') {
+      $event.preventDefault();
+      this.createFact();
+    }
     this.fact = ($event.target as HTMLInputElement).value;
   }
 }
+
+
