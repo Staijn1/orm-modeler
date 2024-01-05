@@ -23,6 +23,21 @@
   </div>
   <div>
     Diagram
+    <div class="grid grid-cols-3 divide-x">
+        <div class="flex">
+          <button class="toolbar-button" (click)="undo()"><fa-icon [icon]="undoIcon"></fa-icon></button>
+          <button class="toolbar-button" (click)="redo()"><fa-icon [icon]="redoIcon"></fa-icon></button>
+          <button class="toolbar-button" (click)="zoomIn()"><fa-icon [icon]="zoomInIcon"></fa-icon></button>
+          <button class="toolbar-button" (click)="zoomOut()"><fa-icon [icon]="zoomOutIcon"></fa-icon></button>
+          <button class="toolbar-button" (click)="resetZoom()"><fa-icon [icon]="resetZoomIcon"></fa-icon></button>
+        </div>
+        <div class="flex divider">
+          <button class="toolbar-button" (click)="applyForceDirectedLayout()"><fa-icon [icon]="forceDirectedLayoutIcon"></fa-icon></button>
+          <button class="toolbar-button" (click)="applyLayeredDigraphLayout()"><fa-icon [icon]="layeredDigraphLayoutIcon"></fa-icon></button>
+          <button class="toolbar-button" (click)="applyCircularLayout()"><fa-icon [icon]="circleLayoutIcon"></fa-icon></button>
+          <button class="toolbar-button" (click)="applyGridLayout()"><fa-icon [icon]="gridLayoutIcon"></fa-icon></button>
+        </div>
+    </div>
     <gojs-diagram
       #myDiagram
       (modelChange)='diagramModelChange($event)'

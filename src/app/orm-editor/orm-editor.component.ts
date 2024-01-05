@@ -6,6 +6,15 @@ import produce from 'immer';
 import {CommonModule} from '@angular/common';
 import {State} from '../types/State';
 import {EntityType, Fact} from '../types/ORM';
+import {FaIconComponent} from "@fortawesome/angular-fontawesome";
+import {
+  faCircleNodes,
+  faCompressArrowsAlt, faLayerGroup, faProjectDiagram,
+  faRedo,
+  faSearchMinus,
+  faSearchPlus, faTh,
+  faUndo
+} from "@fortawesome/free-solid-svg-icons";
 
 
 @Component({
@@ -13,7 +22,8 @@ import {EntityType, Fact} from '../types/ORM';
   standalone: true,
   imports: [
     CommonModule,
-    GojsAngularModule
+    GojsAngularModule,
+    FaIconComponent
   ],
   templateUrl: './orm-editor.component.html',
   styleUrl: './orm-editor.component.scss'
@@ -28,6 +38,19 @@ export class OrmEditorComponent implements AfterViewInit {
 
   private diagram!: go.Diagram;
 
+  public observedDiagram!: Diagram;
+
+  // currently selected node; for inspector
+  public selectedNodeData: go.ObjectData | null = null;
+  undoIcon = faUndo;
+  redoIcon = faRedo;
+  zoomInIcon = faSearchPlus;
+  zoomOutIcon = faSearchMinus;
+  resetZoomIcon = faCompressArrowsAlt;
+  forceDirectedLayoutIcon = faProjectDiagram;
+  layeredDigraphLayoutIcon = faLayerGroup;
+  circleLayoutIcon = faCircleNodes
+  gridLayoutIcon = faTh;
   constructor(private cdr: ChangeDetectorRef) {
     // Fix scoping issues
     this.initDiagram = this.initDiagram.bind(this);
@@ -97,11 +120,6 @@ export class OrmEditorComponent implements AfterViewInit {
     return $(go.Overview);
   }
 
-  public observedDiagram!: Diagram;
-
-  // currently selected node; for inspector
-  public selectedNodeData: go.ObjectData | null = null;
-
   public ngAfterViewInit() {
     if (this.observedDiagram) return;
     this.observedDiagram = this.myDiagramComponent.diagram;
@@ -122,6 +140,109 @@ export class OrmEditorComponent implements AfterViewInit {
         }
       });
     });
+  }
+
+  public undo() {
+    this.diagram.commandHandler.undo();
+  }
+
+  public redo() {
+    this.diagram.commandHandler.redo();
+  }
+
+  public zoomIn() {
+    this.diagram.commandHandler.increaseZoom();
+  }
+
+  public zoomOut() {
+    this.diagram.commandHandler.decreaseZoom();
+  }
+
+  public applyForceDirectedLayout() {
+    const $ = go.GraphObject.make;
+    this.diagram.layout = $(go.ForceDirectedLayout);
+  }
+
+  public applyLayeredDigraphLayout() {
+    const $ = go.GraphObject.make;
+    this.diagram.layout = $(go.LayeredDigraphLayout);
+  }
+
+  public applyCircularLayout() {
+    const $ = go.GraphObject.make;
+    this.diagram.layout = $(go.CircularLayout);
+  }
+
+  public applyGridLayout() {
+    const $ = go.GraphObject.make;
+    this.applyLayout($(go.GridLayout))
+  }
+
+  private applyLayout(layout: go.Layout) {
+    this.diagram.layout = layout;
+    this.diagram.layoutDiagram(true);
+  }
+
+  /**
+   * Handle a fact creation or update
+   * If the fact is new, add it to the diagram, otherwise update the related links
+   * todo: handle update
+   * @param fact
+   */
+  public updateFact(fact: Fact) {
+    // Find or create the EntityType node
+    let entityTypeNode = this.findNodeInModel(fact.EntityType.Name, 'EntityType');
+    if (!entityTypeNode) {
+      entityTypeNode = {
+        id: this.generateRandomId(),
+        text: fact.EntityType.Name,
+        category: 'EntityType'
+      };
+      this.diagram.model.addNodeData(entityTypeNode);
+    }
+
+    // Determine the category of the target node
+    const targetType = (fact.Target as EntityType).Identifier ? 'EntityType' : 'ValueType';
+
+    // Find or create the target node
+    let targetNode = this.findNodeInModel(fact.Target.Name, targetType);
+    if (!targetNode) {
+      targetNode = {
+        id: this.generateRandomId(),
+        text: fact.Target.Name,
+        category: targetType
+      };
+      this.diagram.model.addNodeData(targetNode);
+    }
+    // Always create a BinaryFactType node
+    const binaryFactTypeNode = {
+      id: this.generateRandomId(),
+      readings: fact.Readings,
+      text: fact.Readings.join('/'),
+      category: 'BinaryFactType'
+    };
+    this.diagram.model.addNodeData(binaryFactTypeNode);
+
+    // Create links between the EntityType or ValueType node and the BinaryFactType node
+    const linkFromEntityType = {
+      key: this.generateRandomId(),
+      from: entityTypeNode.id,
+      to: binaryFactTypeNode.id
+    };
+
+    const linkFromBinaryFactType = {
+      key: this.generateRandomId(),
+      from: binaryFactTypeNode.id,
+      to: targetNode.id
+    };
+
+    // Add the links to the diagram
+    (this.diagram.model as go.GraphLinksModel).addLinkDataCollection([linkFromEntityType, linkFromBinaryFactType]);
+    this.diagram.layoutDiagram(true)
+  }
+
+  public resetZoom() {
+    this.diagram.commandHandler.zoomToFit();
   }
 
   private handleAddUniquenessConstraintClick(e: any, obj: any) {
@@ -218,64 +339,6 @@ export class OrmEditorComponent implements AfterViewInit {
         ),
       ),
     );
-  }
-
-  /**
-   * Handle a fact creation or update
-   * If the fact is new, add it to the diagram, otherwise update the related links
-   * todo: handle update
-   * @param fact
-   */
-  public updateFact(fact: Fact) {
-    // Find or create the EntityType node
-    let entityTypeNode = this.findNodeInModel(fact.EntityType.Name, 'EntityType');
-    if (!entityTypeNode) {
-      entityTypeNode = {
-        id: this.generateRandomId(),
-        text: fact.EntityType.Name,
-        category: 'EntityType'
-      };
-      this.diagram.model.addNodeData(entityTypeNode);
-    }
-
-    // Determine the category of the target node
-    const targetType = (fact.Target as EntityType).Identifier ? 'EntityType' : 'ValueType';
-
-    // Find or create the target node
-    let targetNode = this.findNodeInModel(fact.Target.Name, targetType);
-    if (!targetNode) {
-      targetNode = {
-        id: this.generateRandomId(),
-        text: fact.Target.Name,
-        category: targetType
-      };
-      this.diagram.model.addNodeData(targetNode);
-    }
-    // Always create a BinaryFactType node
-    const binaryFactTypeNode = {
-      id: this.generateRandomId(),
-      readings: fact.Readings,
-      text: fact.Readings.join('/'),
-      category: 'BinaryFactType'
-    };
-    this.diagram.model.addNodeData(binaryFactTypeNode);
-
-    // Create links between the EntityType or ValueType node and the BinaryFactType node
-    const linkFromEntityType = {
-      key: this.generateRandomId(),
-      from: entityTypeNode.id,
-      to: binaryFactTypeNode.id
-    };
-
-    const linkFromBinaryFactType = {
-      key: this.generateRandomId(),
-      from: binaryFactTypeNode.id,
-      to: targetNode.id
-    };
-
-    // Add the links to the diagram
-    (this.diagram.model as go.GraphLinksModel).addLinkDataCollection([linkFromEntityType, linkFromBinaryFactType]);
-    this.diagram.layoutDiagram(true)
   }
 
   /**
