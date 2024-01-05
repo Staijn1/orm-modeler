@@ -22,12 +22,6 @@
   }
 }
 
-.box {
-  border: solid 1px black;
-  background: whitesmoke;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
-
 .toolbar-button {
   @apply p-2 bg-blue-500 hover:bg-blue-700 text-white transition;
 }

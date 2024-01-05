@@ -49,25 +49,3 @@
     </gojs-diagram>
   </div>
 </div>
-
-<div class="flex">
-  <div class="box">
-    <h3>Links in app data</h3>
-    <ul>
-      @for (ld of state?.diagramLinkData;track ld["key"]) {
-        <li>
-          Link Key: {{ ld['key'] }}, To: {{ ld['to'] }}, From: {{ ld['from'] }}
-        </li>
-      }
-    </ul>
-  </div>
-
-  <div class="box">
-    <h3>Nodes in app data</h3>
-    <ul>
-      @for (nd of state?.diagramNodeData;track nd["id"]) {
-        <li>Node ID: {{ nd['id'] }}, Text: {{ nd['text'] }}, Type: {{ nd['type'] }}</li>
-      }
-    </ul>
-  </div>
-</div>
