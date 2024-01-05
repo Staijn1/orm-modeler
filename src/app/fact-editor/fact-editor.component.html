@@ -1,10 +1,12 @@
 <div id="fact-editor-container">
-  <textarea
+  <input
+    type="text"
     id="editing"
     spellcheck="false"
     [ngModel]="fact"
-    (keyup)="onTyping($event)">
-  </textarea>
+    (keyup)="onTyping($event)"
+    (keydown)="disableNewline($event)"
+  >
 
 
   <!--

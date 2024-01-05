@@ -96,6 +96,12 @@ export class FactEditorComponent {
     }
     this.fact = ($event.target as HTMLInputElement).value;
   }
+
+  disableNewline($event: KeyboardEvent) {
+    if ($event.key === 'Enter') {
+      $event.preventDefault();
+    }
+  }
 }
 
 
