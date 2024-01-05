@@ -227,33 +227,39 @@ export class OrmEditorComponent implements AfterViewInit {
    * @param fact
    */
   public updateFact(fact: Fact) {
-    const entityTypeNode = {
-      id: this.generateRandomId(),
-      text: fact.EntityType.Name,
-      category: 'EntityType'
+    // Find or create the EntityType node
+    let entityTypeNode = this.findNodeInModel(fact.EntityType.Name, 'EntityType');
+    if (!entityTypeNode) {
+      entityTypeNode = {
+        id: this.generateRandomId(),
+        text: fact.EntityType.Name,
+        category: 'EntityType'
+      };
+      this.diagram.model.addNodeData(entityTypeNode);
     }
 
-    // If the TargetType does not have an identifier, it is a ValueType, otherwise it is an EntityType
+    // Determine the category of the target node
     const targetType = (fact.Target as EntityType).Identifier ? 'EntityType' : 'ValueType';
 
-    // Create a new node for the EntityType or ValueType
-    const targetNode = {
-      id: Math.random().toString(),
-      text: fact.Target.Name,
-      category: targetType
+    // Find or create the target node
+    let targetNode = this.findNodeInModel(fact.Target.Name, targetType);
+    if (!targetNode) {
+      targetNode = {
+        id: this.generateRandomId(),
+        text: fact.Target.Name,
+        category: targetType
+      };
+      this.diagram.model.addNodeData(targetNode);
     }
-
-    // Create a new BinaryFactType node with the Readings from the fact object
+    // Always create a BinaryFactType node
     const binaryFactTypeNode = {
       id: this.generateRandomId(),
       readings: fact.Readings,
       text: fact.Readings.join('/'),
       category: 'BinaryFactType'
-    }
-
-    this.diagram.model.addNodeData(entityTypeNode);
-    this.diagram.model.addNodeData(targetNode);
+    };
     this.diagram.model.addNodeData(binaryFactTypeNode);
+
     // Create links between the EntityType or ValueType node and the BinaryFactType node
     const linkFromEntityType = {
       key: this.generateRandomId(),
@@ -272,10 +278,34 @@ export class OrmEditorComponent implements AfterViewInit {
     this.diagram.layoutDiagram(true)
   }
 
+  /**
+   * Find a node in the diagram model by name and category
+   * @param name
+   * @param category
+   * @private
+   */
+  private findNodeInModel(name: string, category: string) {
+    const nodeDataArray = this.diagram.model.nodeDataArray as Array<any>;
+    return nodeDataArray.find(node => node.text === name && node.category === category);
+  }
+
+  /**
+   * Generate a random ID
+   * @private
+   */
   private generateRandomId() {
     return Math.random().toString();
   }
 
+  /**
+   * Validates if a link is allowed to be made between two nodes
+   * @param fromNode
+   * @param fromPort
+   * @param toNode
+   * @param toPort
+   * @param link
+   * @private
+   */
   private validateLink(fromNode: Node, fromPort: GraphObject, toNode: Node, toPort: GraphObject, link: Link) {
     // A link cannot connect to itself
     if (fromNode === toNode) return false;
